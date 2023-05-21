@@ -35,6 +35,8 @@ import {
   HyperlaneTestRecipientDeployer,
   TestRecipientConfig,
 } from './TestRecipientDeployer';
+import { deployRequest } from 'src/hyperlane/dto/hyperlane.dto';
+import { log } from 'console';
 
 export function getArgs(multiProvider: MultiProvider) {
   // For each chain, we need:
@@ -101,6 +103,19 @@ export class HyperlanePermissionlessDeployer {
     );
   }
 
+  static async deployer(payload:deployRequest): Promise<HyperlanePermissionlessDeployer> {
+    const multiProvider = getMultiProvider();
+    const signer = new ethers.Wallet(payload.key);
+    multiProvider.setSharedSigner(signer);
+    return new HyperlanePermissionlessDeployer(
+      multiProvider,
+      signer,
+      payload.local,
+      payload.remote as unknown as string[],
+      true
+    )
+  }
+
   get chains(): ChainName[] {
     return this.remotes.concat([this.local]);
   }
@@ -111,8 +126,11 @@ export class HyperlanePermissionlessDeployer {
   ): HyperlaneAddressesMap<any> {
     const bAddresses = serializeContractsMap(bContracts);
     const mergedAddresses = objMerge(aAddresses, bAddresses);
-    this.logger(`Writing contract addresses to artifacts/addresses.json`);
-    mergeJSON('./artifacts/', 'addresses.json', mergedAddresses);
+    this.logger(`Writing contract addresses to /addresses.json`);
+    console.log("Address",mergedAddresses);
+    
+
+    // mergeJSON('./', 'addresses.json', mergedAddresses);
     return mergedAddresses;
   }
 
@@ -200,7 +218,10 @@ export class HyperlanePermissionlessDeployer {
       );
 
       this.logger(`Writing agent config to artifacts/agent_config.json`);
-      writeJSON('./artifacts/', 'agent_config.json', agentConfig);
+      console.log("agent-Config",agentConfig);
+      
+      // writeJSON('./', 'agent_config.json', agentConfig);
+
     }
   }
 }
